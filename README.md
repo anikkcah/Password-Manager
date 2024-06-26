@@ -3,4 +3,4 @@ A Simple Password Manager(Android)
 -built using Jetpack Compose library.
 -using Room DB.
 
-![screenshots](manager-1.jpg)
+![alt text](https://github.com/anikkcah/Password-Manager/blob/master/manager-1.jpg?raw=true)
