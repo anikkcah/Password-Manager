@@ -42,6 +42,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -60,12 +61,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.room.Room
 import com.example.passwordmanager.db.UserCredentials
 import com.example.passwordmanager.db.repository.UserCredentialsRepository
 import com.example.passwordmanager.security.BiometricPromptManager
+import com.example.passwordmanager.ui.theme.PasswordManagerTheme
 import com.example.passwordmanager.viewmodel.CredentialsViewModel
 import com.example.passwordmanager.viewmodel.CredentialsViewModelFactory
 import net.sqlcipher.database.SQLiteDatabase
@@ -88,7 +94,8 @@ class MainActivity : AppCompatActivity() {
                 description = "Unlock your screen with PIN or fingerprint"
             )
 
-            MyApp(appContext = applicationContext)
+
+            MyApp(appContext = applicationContext,promptManager)
         }
     }
 }
@@ -97,8 +104,9 @@ class MainActivity : AppCompatActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyApp(appContext: Context) {
+fun MyApp(appContext: Context,promptManager: BiometricPromptManager) {
 
+    BiometricUnlockOnResume(promptManager) //top-level declaration if the app resumes after biometric unlock
 
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     var showBottomSheetEdit by rememberSaveable { mutableStateOf(false) }
@@ -119,198 +127,201 @@ fun MyApp(appContext: Context) {
     val viewModel: CredentialsViewModel = viewModel(factory = factory)
 
 
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(onClick = { showBottomSheet = true }) {
-                Icon(Icons.Filled.Add,contentDescription = "Add", tint=Color.Blue)
-
-            }
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            TopAppBar()
-            Spacer(modifier = Modifier.height(16.dp))
-            UserCredentialsList(viewModel = viewModel, onEditClick = { credential ->
-                editingCredential = credential
-                accountname = credential.sitename
-                username = credential.username
-                password = credential.password
-                showBottomSheetEdit = true
-            })
-        }
-
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    showBottomSheet = false
-                    // editingCredential = null
-                    accountname = ""
-                    username = ""
-                    password = ""
-                    // showDeleteConfirmation = false
-                }
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        TextField(
-                            value = accountname,
-                            onValueChange = { accountname = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Account Name") }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        TextField(
-                            value = username,
-                            onValueChange = { username = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Username / Email") }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        TextField(
-                            value = password,
-                            onValueChange = { password = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Password") }
-
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = {
+  PasswordManagerTheme {
 
 
-                                viewModel.addCredentials(accountname, username, password)
+      Scaffold(
+          floatingActionButton = {
+              FloatingActionButton(onClick = { showBottomSheet = true }) {
+                  Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.Blue)
 
-                                accountname = ""
-                                username = ""
-                                password = ""
-                                showBottomSheet = false
-                                editingCredential = null
-                            },
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .fillMaxWidth()
+              }
+          }
+      ) { padding ->
+          Column(
+              modifier = Modifier
+                  .fillMaxSize()
+                  .padding(padding),
+              verticalArrangement = Arrangement.Center,
+              horizontalAlignment = Alignment.CenterHorizontally
+          ) {
+              TopAppBar()
+              Spacer(modifier = Modifier.height(16.dp))
+              UserCredentialsList(viewModel = viewModel, onEditClick = { credential ->
+                  editingCredential = credential
+                  accountname = credential.sitename
+                  username = credential.username
+                  password = credential.password
+                  showBottomSheetEdit = true
+              })
+          }
 
-                        ) {
-                            Text("Add New Account")
-                        }
+          if (showBottomSheet) {
+              ModalBottomSheet(
+                  onDismissRequest = {
+                      showBottomSheet = false
+                      // editingCredential = null
+                      accountname = ""
+                      username = ""
+                      password = ""
+                      // showDeleteConfirmation = false
+                  }
+              ) {
+                  Surface(
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .padding(16.dp)
+                  ) {
+                      Column {
+                          TextField(
+                              value = accountname,
+                              onValueChange = { accountname = it },
+                              modifier = Modifier.fillMaxWidth(),
+                              label = { Text("Account Name") }
+                          )
+                          Spacer(modifier = Modifier.height(8.dp))
 
-                    }
-                }
-            }
-        }
+                          TextField(
+                              value = username,
+                              onValueChange = { username = it },
+                              modifier = Modifier.fillMaxWidth(),
+                              label = { Text("Username / Email") }
+                          )
+                          Spacer(modifier = Modifier.height(8.dp))
 
-        if (showBottomSheetEdit) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    showBottomSheetEdit = false
-                    editingCredential = null
-                    accountname = ""
-                    username = ""
-                    password = ""
-                    showDeleteConfirmation = false
-                }
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        TextField(
-                            value = if (showDeleteConfirmation) "" else accountname,
-                            onValueChange = { accountname = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Account Name") }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                          TextField(
+                              value = password,
+                              onValueChange = { password = it },
+                              modifier = Modifier.fillMaxWidth(),
+                              label = { Text("Password") }
 
-                        TextField(
-                            value = if (showDeleteConfirmation) "" else username,
-                            onValueChange = { username = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Username / Email") }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                          )
 
-                        TextField(
-                                value = if(showDeleteConfirmation) "" else password,
-                                onValueChange = { password = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Password") }
-                            )
+                          Spacer(modifier = Modifier.height(16.dp))
 
-
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Row() {
-
-                            Button(
-                                onClick = {
-                                    if (editingCredential != null) {
-
-                                        viewModel.updateCredentials(
-                                            accountname,
-                                            username,
-                                            password
-                                        )
-                                    } else {
-                                        viewModel.addCredentials(accountname, username, password)
-                                    }
-
-                                },
-                                modifier = Modifier.align(Alignment.CenterVertically)
-                            ) {
-                                Text("Save Changes")
-                            }
-
-                            if (editingCredential != null) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                OutlinedButton(
-                                    onClick = {
-                                        viewModel.deleteCredentials(
-                                            UserCredentials(
-                                                accountname,
-                                                username,
-                                                password
-                                            )
-                                        )
-                                        showDeleteConfirmation = true
-                                    },
-                                    modifier = Modifier.align(Alignment.Bottom),
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = Color.Red
-                                    )
-                                ) {
-                                    Text("Delete Account")
-                                }
-                            }
+                          Button(
+                              onClick = {
 
 
-                        }
+                                  viewModel.addCredentials(accountname, username, password)
+
+                                  accountname = ""
+                                  username = ""
+                                  password = ""
+                                  showBottomSheet = false
+                                  editingCredential = null
+                              },
+                              modifier = Modifier
+                                  .align(Alignment.CenterHorizontally)
+                                  .fillMaxWidth()
+
+                          ) {
+                              Text("Add New Account")
+                          }
+
+                      }
+                  }
+              }
+          }
+
+          if (showBottomSheetEdit) {
+              ModalBottomSheet(
+                  onDismissRequest = {
+                      showBottomSheetEdit = false
+                      editingCredential = null
+                      accountname = ""
+                      username = ""
+                      password = ""
+                      showDeleteConfirmation = false
+                  }
+              ) {
+                  Surface(
+                      modifier = Modifier
+                          .fillMaxWidth()
+                          .padding(16.dp)
+                  ) {
+                      Column {
+                          TextField(
+                              value = if (showDeleteConfirmation) "" else accountname,
+                              onValueChange = { accountname = it },
+                              modifier = Modifier.fillMaxWidth(),
+                              label = { Text("Account Name") }
+                          )
+                          Spacer(modifier = Modifier.height(8.dp))
+
+                          TextField(
+                              value = if (showDeleteConfirmation) "" else username,
+                              onValueChange = { username = it },
+                              modifier = Modifier.fillMaxWidth(),
+                              label = { Text("Username / Email") }
+                          )
+                          Spacer(modifier = Modifier.height(8.dp))
+
+                          TextField(
+                              value = if (showDeleteConfirmation) "" else password,
+                              onValueChange = { password = it },
+                              modifier = Modifier.fillMaxWidth(),
+                              label = { Text("Password") }
+                          )
 
 
-                    }
-                }
-            }
 
-        }
-    }
+                          Spacer(modifier = Modifier.height(16.dp))
+
+                          Row() {
+
+                              Button(
+                                  onClick = {
+                                      if (editingCredential != null) {
+
+                                          viewModel.updateCredentials(
+                                              accountname,
+                                              username,
+                                              password
+                                          )
+                                      } else {
+                                          viewModel.addCredentials(accountname, username, password)
+                                      }
+
+                                  },
+                                  modifier = Modifier.align(Alignment.CenterVertically)
+                              ) {
+                                  Text("Save Changes")
+                              }
+
+                              if (editingCredential != null) {
+                                  Spacer(modifier = Modifier.height(8.dp))
+                                  OutlinedButton(
+                                      onClick = {
+                                          viewModel.deleteCredentials(
+                                              UserCredentials(
+                                                  accountname,
+                                                  username,
+                                                  password
+                                              )
+                                          )
+                                          showDeleteConfirmation = true
+                                      },
+                                      modifier = Modifier.align(Alignment.Bottom),
+                                      colors = ButtonDefaults.outlinedButtonColors(
+                                          contentColor = Color.Red
+                                      )
+                                  ) {
+                                      Text("Delete Account")
+                                  }
+                              }
+
+
+                          }
+
+
+                      }
+                  }
+              }
+
+          }
+      }
+  }
 }
 
 @Composable
@@ -370,6 +381,27 @@ fun TopAppBar(){
     androidx.compose.material3.TopAppBar(title = { Text(text = "Password Manager") })
 }
 
+
+@Composable
+fun BiometricUnlockOnResume(promptManager: BiometricPromptManager) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                promptManager.showBiometricPrompt(
+                    title = "Unlock Password Manager",
+                    description = "Unlock your screen with PIN or fingerprint"
+                )
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)}
+    }
+}
 /*
 @Preview(showBackground = true)
 @Composable
