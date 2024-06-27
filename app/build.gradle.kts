@@ -70,7 +70,7 @@ dependencies {
     implementation(libs.material)
     implementation("net.zetetic:android-database-sqlcipher:4.4.2")
     implementation("androidx.security:security-crypto:1.1.0-alpha03")
-
+    implementation("androidx.biometric:biometric:1.1.0")
 
     implementation(libs.androidx.security.crypto)
     // Optional for biometric authentication
