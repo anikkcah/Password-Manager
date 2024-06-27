@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +48,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,9 +56,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.room.Room
 import com.example.passwordmanager.db.UserCredentials
 import com.example.passwordmanager.db.repository.UserCredentialsRepository
-import com.example.passwordmanager.security.CipherProvider
 import com.example.passwordmanager.viewmodel.CredentialsViewModel
 import com.example.passwordmanager.viewmodel.CredentialsViewModelFactory
+import net.sqlcipher.database.SQLiteDatabase
+import net.sqlcipher.database.SupportFactory
 
 
 class MainActivity : ComponentActivity() {
@@ -68,7 +74,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private val cipherProvider = CipherProvider()
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,12 +89,13 @@ fun MyApp(appContext: Context) {
     var password by remember { mutableStateOf("") }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
+    val builder = Room.databaseBuilder(appContext, UserCredentialsDatabase::class.java, "user_credentials.db")
 
-    val database by lazy {
-        Room.databaseBuilder(appContext, UserCredentialsDatabase::class.java, "user_credentials")
-            .build()
-    }
-    val repository by lazy { UserCredentialsRepository(database.userCredentialsDao()) }
+
+    val cipherFactory = SupportFactory(SQLiteDatabase.getBytes("Passphrase".toCharArray()))
+    builder.openHelperFactory(cipherFactory)
+    builder.build()
+    val repository by lazy { UserCredentialsRepository(builder.build().userCredentialsDao()) }
     val factory = remember { CredentialsViewModelFactory(repository) }
     val viewModel: CredentialsViewModel = viewModel(factory = factory)
 
@@ -166,7 +173,6 @@ fun MyApp(appContext: Context) {
                         Button(
                             onClick = {
 
-                                // password = cipherProvider.encrypt(password,"password")
 
                                 viewModel.addCredentials(accountname, username, password)
 
