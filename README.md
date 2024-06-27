@@ -8,6 +8,8 @@ A Simple Password Manager(Android)
 ( rooted device can't access the database contents from file explorer )
 ( other malicious apps can't access the database )
 
+-uses Biometric authentication
+
 
 ![alt text](https://github.com/anikkcah/ImageblobsforReadme/blob/master/manager-1.jpg?raw=true)
 ![alt text](https://github.com/anikkcah/ImageblobsforReadme/blob/master/manager-2.jpg?raw=true)
