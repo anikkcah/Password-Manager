@@ -15,11 +15,11 @@
 
 <hr>
 
-<img src = "https://raw.githubusercontent.com/anikkcah/ImageblobsforReadme/master/home_screen.jpg" width="300" height="650">
+<img align="left" src = "https://raw.githubusercontent.com/anikkcah/ImageblobsforReadme/master/home_screen.jpg" width="300" height="650">
 
-<img src = "https://raw.githubusercontent.com/anikkcah/ImageblobsforReadme/master/home_screen_add_new.jpg" width="300" height="650">
+<img align="center" src = "https://raw.githubusercontent.com/anikkcah/ImageblobsforReadme/master/home_screen_add_new.jpg" width="300" height="650">
 
-<img src = "https://raw.githubusercontent.com/anikkcah/ImageblobsforReadme/master/home_screen_pass_show.jpg" width="300" height="650">
+<img align="right" src = "https://raw.githubusercontent.com/anikkcah/ImageblobsforReadme/master/home_screen_pass_show.jpg" width="300" height="650">
 
 </br></br>
 
