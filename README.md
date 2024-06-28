@@ -21,6 +21,5 @@
 
 <img align="right" src = "https://raw.githubusercontent.com/anikkcah/ImageblobsforReadme/master/home_screen_pass_show.jpg" width="300" height="650">
 
-</br></br>
 
 <hr>
