@@ -11,7 +11,7 @@ A Simple Password Manager(Android)
 -uses Biometric authentication
 
 
-<img src = "https://raw.githubusercontent.com/anikkcah/ImageblobsforReadme/master/home_screen.jpg" width="200" height="500")
+<img src = "https://raw.githubusercontent.com/anikkcah/ImageblobsforReadme/master/home_screen.jpg" width="200" height="500">
 
 
 
