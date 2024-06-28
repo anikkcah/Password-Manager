@@ -1,7 +1,6 @@
 package com.example.passwordmanager
 
 import android.app.Activity
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -15,7 +14,6 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,30 +21,32 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,13 +56,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -72,7 +70,6 @@ import androidx.room.Room
 import com.example.passwordmanager.db.UserCredentials
 import com.example.passwordmanager.db.repository.UserCredentialsRepository
 import com.example.passwordmanager.security.BiometricPromptManager
-import com.example.passwordmanager.ui.theme.PasswordManagerTheme
 import com.example.passwordmanager.viewmodel.CredentialsViewModel
 import com.example.passwordmanager.viewmodel.CredentialsViewModelFactory
 import net.sqlcipher.database.SQLiteDatabase
@@ -92,12 +89,9 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
 
-            PasswordManagerTheme {
 
-                BiometricUnlock(appContext = applicationContext, promptManager = promptManager)
+            BiometricUnlock(appContext = applicationContext, promptManager = promptManager)
 
-
-            }
 
         }
     }
@@ -148,8 +142,8 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
-                    "Authentication success"
-                    MyApp(appContext = appContext, promptManager = promptManager)
+                    //"Authentication success"
+                    MyApp(appContext = appContext)
                 }
 
                 BiometricPromptManager.BiometricResult.FeatureUnavailable -> {
@@ -191,13 +185,27 @@ class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun TopAppBar() {
-        androidx.compose.material3.TopAppBar(title = { Text(text = "Password Manager") })
+        androidx.compose.material3.TopAppBar(
+            title = {
+                Text(
+                    text = "Password Manager",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            colors = TopAppBarColors(
+                containerColor = Color.LightGray,
+                titleContentColor = Color.Black,
+                navigationIconContentColor = Color.Unspecified,
+                actionIconContentColor = Color.Unspecified,
+                scrolledContainerColor = Color.Unspecified
+            )
+        )
     }
 
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun MyApp(appContext: Context, promptManager: BiometricPromptManager) {
+    fun MyApp(appContext: Context) {
 
 
         var showBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -223,210 +231,265 @@ class MainActivity : AppCompatActivity() {
         val viewModel: CredentialsViewModel = viewModel(factory = factory)
 
 
-        PasswordManagerTheme {
 
-
-            Scaffold(
-                floatingActionButton = {
-                    FloatingActionButton(onClick = { showBottomSheet = true }) {
-                        Icon(Icons.Filled.Add, contentDescription = "Add", tint = Color.Blue)
-
-                    }
-                }
-            ) { padding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+        Scaffold(containerColor = Color.LightGray,
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = { showBottomSheet = true },
+                    modifier = Modifier.size(90.dp), containerColor = Color.Blue
                 ) {
-                    TopAppBar()
-                    Spacer(modifier = Modifier.height(16.dp))
-                    UserCredentialsList(viewModel = viewModel, onEditClick = { credential ->
-                        editingCredential = credential
-                        accountname = credential.sitename
-                        username = credential.username
-                        password = credential.password
-                        showBottomSheetEdit = true
-                    })
+                    Icon(
+                        Icons.Filled.Add, contentDescription = "Add", tint = Color.White,
+                        modifier = Modifier.size(60.dp)
+                    )
+
                 }
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TopAppBar()
+                HorizontalDivider(color = Color.Black, modifier = Modifier
+                    .fillMaxWidth()
+                    .size(1.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                UserCredentialsList(viewModel = viewModel, onEditClick = { credential ->
+                    editingCredential = credential
+                    accountname = credential.sitename
+                    username = credential.username
+                    password = credential.password
+                    showBottomSheetEdit = true
+                })
+            }
 
-                if (showBottomSheet) {
-                    ModalBottomSheet(
-                        onDismissRequest = {
-                            showBottomSheet = false
-                            // editingCredential = null
-                            accountname = ""
-                            username = ""
-                            password = ""
-                            // showDeleteConfirmation = false
-                        }
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        showBottomSheet = false
+                        //editingCredential = null
+                        accountname = ""
+                        username = ""
+                        password = ""
+                        // showDeleteConfirmation = false
+                    }
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     ) {
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            Column {
-                                TextField(
-                                    value = accountname,
-                                    onValueChange = { accountname = it },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Account Name") }
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
+                        Column {
+                            TextField(
+                                value = accountname,
+                                onValueChange = { accountname = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Account Name") }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
 
-                                TextField(
-                                    value = username,
-                                    onValueChange = { username = it },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Username / Email") }
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
+                            TextField(
+                                value = username,
+                                onValueChange = { username = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Username / Email") }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
 
-                                TextField(
-                                    value = password,
-                                    onValueChange = { password = it },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Password") }
+                            TextField(
+                                value = password,
+                                onValueChange = { password = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Password") }
 
-                                )
+                            )
 
-                                Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                                Button(
-                                    onClick = {
+                            Button(
+                                onClick = {
 
-
-                                        viewModel.addCredentials(accountname, username, password)
+                                    if (accountname.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty()) {
+                                        viewModel.addCredentials(
+                                            accountname,
+                                            username,
+                                            password
+                                        )
 
                                         accountname = ""
                                         username = ""
                                         password = ""
                                         showBottomSheet = false
-                                        editingCredential = null
-                                    },
-                                    modifier = Modifier
-                                        .align(Alignment.CenterHorizontally)
-                                        .fillMaxWidth()
-
-                                ) {
-                                    Text("Add New Account")
-                                }
-
-                            }
-                        }
-                    }
-                }
-
-                if (showBottomSheetEdit) {
-                    ModalBottomSheet(
-                        onDismissRequest = {
-                            showBottomSheetEdit = false
-                            editingCredential = null
-                            accountname = ""
-                            username = ""
-                            password = ""
-                            showDeleteConfirmation = false
-                        }
-                    ) {
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            Column {
-                                TextField(
-                                    value = if (showDeleteConfirmation) "" else accountname,
-                                    onValueChange = { accountname = it },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Account Name") }
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                TextField(
-                                    value = if (showDeleteConfirmation) "" else username,
-                                    onValueChange = { username = it },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Username / Email") }
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                TextField(
-                                    value = if (showDeleteConfirmation) "" else password,
-                                    onValueChange = { password = it },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Password") }
-                                )
-
-
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-
-                                    Button(
-                                        onClick = {
-                                            if (editingCredential != null) {
-
-                                                viewModel.updateCredentials(
-                                                    accountname,
-                                                    username,
-                                                    password
-                                                )
-                                            } else {
-                                                viewModel.addCredentials(
-                                                    accountname,
-                                                    username,
-                                                    password
-                                                )
-                                            }
-
-                                        },
-                                        modifier = Modifier.weight(1f),
-                                        shape = RectangleShape
-                                    ) {
-                                        Text("Save Changes")
-                                    }
-
-                                    if (editingCredential != null) {
-                                        // Spacer(modifier = Modifier.height(8.dp))
-                                        OutlinedButton(
-                                            onClick = {
-                                                viewModel.deleteCredentials(
-                                                    UserCredentials(
-                                                        accountname,
-                                                        username,
-                                                        password
-                                                    )
-                                                )
-                                                showDeleteConfirmation = true
-                                            },
-                                            modifier = Modifier.weight(1f),
-                                            shape = RectangleShape,
-                                            colors = ButtonDefaults.outlinedButtonColors(
-                                                contentColor = Color.Red
-                                            )
-                                        ) {
-                                            Text("Delete Account")
-                                        }
                                     }
 
 
-                                }
+                                },
+                                colors = ButtonColors(
+                                    containerColor = Color.Black,
+                                    contentColor = Color.White,
+                                    disabledContainerColor = Color.White,
+                                    disabledContentColor = Color.Black
+                                ),
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .fillMaxWidth()
+                                    .size(50.dp)
 
-
+                            ) {
+                                Text("Add New Account")
                             }
+
                         }
                     }
-
                 }
             }
+
+            if (showBottomSheetEdit) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        showBottomSheetEdit = false
+                        editingCredential = null
+                        accountname = ""
+                        username = ""
+                        password = ""
+                        showDeleteConfirmation = false
+                    }
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column {
+
+                            Text(
+                                text = "Account Details",
+                                color = Color.Blue,
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            TextField(
+                                value = if (showDeleteConfirmation) "" else accountname,
+                                onValueChange = { accountname = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Account Type") },
+                                textStyle = TextStyle(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            TextField(
+                                value = if (showDeleteConfirmation) "" else username,
+                                onValueChange = { username = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Username / Email") },
+                                textStyle = TextStyle(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            TextField(
+                                value = if (showDeleteConfirmation) "" else password,
+                                onValueChange = { password = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Password") },
+                                textStyle = TextStyle(
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+
+
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+
+                                Button(
+                                    onClick = {
+                                        if (editingCredential != null) {
+
+                                            viewModel.updateCredentials(
+                                                accountname,
+                                                username,
+                                                password
+                                            )
+                                        } else {
+                                            viewModel.addCredentials(
+                                                accountname,
+                                                username,
+                                                password
+                                            )
+                                        }
+
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .size(60.dp),
+                                    //shape = RectangleShape,
+                                    colors = ButtonColors(
+                                        containerColor = Color.Black,
+                                        contentColor = Color.White,
+                                        disabledContainerColor = Color.White,
+                                        disabledContentColor = Color.Black
+                                    )
+                                ) {
+                                    Text("Save Changes")
+                                }
+
+                                if (editingCredential != null) {
+                                    // Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = {
+                                            viewModel.deleteCredentials(
+                                                UserCredentials(
+                                                    accountname,
+                                                    username,
+                                                    password
+                                                )
+                                            )
+                                            showDeleteConfirmation = true
+                                        },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .size(60.dp),
+                                        // shape = RectangleShape,
+                                        colors = ButtonColors(
+                                            containerColor = Color.Red,
+                                            contentColor = Color.White,
+                                            disabledContainerColor = Color.White,
+                                            disabledContentColor = Color.Red
+                                        )
+                                    ) {
+                                        Text("Delete Account")
+                                    }
+                                }
+
+
+                            }
+
+
+                        }
+                    }
+                }
+
+            }
         }
+
     }
 
     @Composable
@@ -454,32 +517,50 @@ class MainActivity : AppCompatActivity() {
         onDelete: (UserCredentials) -> Unit,
         onEditClick: (UserCredentials) -> Unit
     ) {
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
                 .clickable { onEditClick(credential) },
+            colors = CardColors(
+                containerColor = Color.White,
+                contentColor = Color.Black,
+                disabledContentColor = Color.Black,
+                disabledContainerColor = Color.White
+            ),
+            shape = RoundedCornerShape(30.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(20.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row {
                     Text(
                         text = credential.sitename.replaceFirstChar(Char::titlecase),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 25.sp,
                     )
-                    Text(text = "  *******")
+
+                    Text(
+                        text = "   *******",
+                        style = TextStyle(fontSize = 25.sp),
+                        color = Color.LightGray
+                    )
+
                     // Text(text = "Password: ${"*".repeat(credential.password.length)}")
                 }
-                /*  IconButton(onClick = { onDelete(credential) }) {
-                  Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete")
-              }
 
-             */
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "arrowicon"
+                )
+
+
             }
         }
     }
@@ -491,7 +572,7 @@ class MainActivity : AppCompatActivity() {
         val context = LocalContext.current
         var showDialog by remember { mutableStateOf(true) }
 
-        if (showDialog){
+        if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
                 title = { Text("PasswordManager is locked") },
@@ -515,7 +596,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             )
-    }
+        }
     }
 }
 
