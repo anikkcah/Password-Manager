@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.androidx.security.crypto)
     // Optional for biometric authentication
     implementation(libs.androidx.biometric)
+    implementation("androidx.compose.material:material-icons-extended:1.6.8")
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.lifecycle.runtime.compose.android)

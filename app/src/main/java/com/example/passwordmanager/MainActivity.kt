@@ -25,9 +25,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -38,6 +41,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -59,6 +63,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -214,6 +221,7 @@ class MainActivity : AppCompatActivity() {
         var accountname by remember { mutableStateOf("") }
         var username by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
+        var showPassword by remember { mutableStateOf(false) }
         var showDeleteConfirmation by remember { mutableStateOf(false) }
 
         val builder = Room.databaseBuilder(
@@ -254,9 +262,11 @@ class MainActivity : AppCompatActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 TopAppBar()
-                HorizontalDivider(color = Color.Black, modifier = Modifier
-                    .fillMaxWidth()
-                    .size(1.dp))
+                HorizontalDivider(
+                    color = Color.Black, modifier = Modifier
+                        .fillMaxWidth()
+                        .size(1.dp)
+                )
                 Spacer(modifier = Modifier.height(16.dp))
                 UserCredentialsList(viewModel = viewModel, onEditClick = { credential ->
                     editingCredential = credential
@@ -303,6 +313,7 @@ class MainActivity : AppCompatActivity() {
                             TextField(
                                 value = password,
                                 onValueChange = { password = it },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                                 modifier = Modifier.fillMaxWidth(),
                                 label = { Text("Password") }
 
@@ -407,7 +418,19 @@ class MainActivity : AppCompatActivity() {
                                 textStyle = TextStyle(
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold
-                                )
+                                ),
+                                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(), // Apply transformation based on state
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), // Set keyboard type for password
+                                trailingIcon = {
+                                    IconButton(onClick = {
+                                        showPassword = !showPassword
+                                    }) { // Toggle password visibility
+                                        Icon(
+                                            if (showPassword) Icons.Default.VisibilityOff else Icons.Filled.Visibility,
+                                            contentDescription = "Show/Hide Password"
+                                        )
+                                    }
+                                }
                             )
 
 
