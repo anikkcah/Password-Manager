@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -337,7 +338,9 @@ class MainActivity : AppCompatActivity() {
                                         showBottomSheet = false
                                     }
 
+                                    showBottomSheet = false
 
+                                    Toast.makeText(appContext, "Account Added Successfully!", Toast.LENGTH_LONG).show()
                                 },
                                 colors = ButtonColors(
                                     containerColor = Color.Black,
@@ -459,6 +462,9 @@ class MainActivity : AppCompatActivity() {
                                             )
                                         }
 
+                                        showBottomSheetEdit = false
+
+                                       if (editingCredential != null) Toast.makeText(appContext, "Account Updated Successfully!", Toast.LENGTH_LONG).show()
                                     },
                                     modifier = Modifier
                                         .weight(1f)
@@ -486,6 +492,9 @@ class MainActivity : AppCompatActivity() {
                                                 )
                                             )
                                             showDeleteConfirmation = true
+
+                                            showBottomSheetEdit = false
+                                            Toast.makeText(appContext, "Account Deleted Successfully!", Toast.LENGTH_LONG).show()
                                         },
                                         modifier = Modifier
                                             .weight(1f)
